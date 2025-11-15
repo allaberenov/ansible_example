@@ -1,0 +1,55 @@
+---
+# tasks file for service
+
+- name: Install nginx
+  apt: 
+    name: nginx
+    state: present
+
+- name: Install cron
+  apt:
+    name: cron
+    state: present
+
+- name: Install jq
+  apt:
+    name: jq
+    state: present
+
+- name: create file json from template
+  template:
+    src: service_state.json.j2
+    dest: /opt/service_state.json
+    mode: 0664 # TODO возможно придется поменять права
+
+- name: Ensure nginx is running
+  service:
+    name: nginx
+    state: started
+
+- name: Add cmd to cron
+  cron:
+    name: "update_nginx_uptime"
+    minute: "*"
+    job: 'echo "$(jq \".uptime = \$(( \$(ps -o etimes= -p \$(cat /var/run/nginx.pid)) / 60 ))\" /opt/service_state.json)" > /opt/service_state.json'
+
+- name: Get before uptime
+  command: jq -r '.uptime' /opt/service_state.json
+  register: uptime_before
+
+- pause:
+    seconds: 70
+
+- debug:
+    msg: "Wait for 70 seconds"
+
+- name: Get after uptime
+  command: jq -r '.uptime' /opt/service_state.json
+  register: uptime_after
+
+- debug:
+    msg: "Uptime = {{ uptime_after.stdout }}"
+  
+- assert:
+  that:
+  - uptime_after.stdout | int > uptime_before.stdout | int
