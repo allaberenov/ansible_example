@@ -1,0 +1,4 @@
+- hosts: ansible_test
+  become: yes
+  roles:
+    - service

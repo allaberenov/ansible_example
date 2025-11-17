@@ -1,0 +1,39 @@
+---
+- name: Install required packages (Ubuntu)
+  apt:
+    name:
+      - nginx
+      - cron
+      - jq
+    state: present
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+
+- name: Install required packages (CentOS)
+  yum:
+    name:
+      - nginx
+      - cronie
+      - jq
+    state: present
+  when: ansible_os_family == "RedHat"
+
+- name: Ensure cron service is running (Ubuntu)
+  service:
+    name: cron
+    state: started
+    enabled: yes
+  when: ansible_os_family == "Debian"
+
+- name: Ensure cron service is running (CentOS)
+  service:
+    name: crond
+    state: started
+    enabled: yes
+  when: ansible_os_family == "RedHat"
+
+- name: Ensure nginx is running
+  service:
+    name: nginx
+    state: started
+    enabled: yes

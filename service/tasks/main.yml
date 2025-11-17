@@ -1,55 +1,76 @@
 ---
-# tasks file for service
+- import_tasks: install.yml
+- import_tasks: config.yml
+- import_tasks: cron.yml
+- import_tasks: verify.yml
 
-- name: Install nginx
-  apt: 
-    name: nginx
-    state: present
 
-- name: Install cron
-  apt:
-    name: cron
-    state: present
+# ---
+# # tasks file for service
+# - name: Install nginx
+#   apt: 
+#     name: nginx
+#     state: present
 
-- name: Install jq
-  apt:
-    name: jq
-    state: present
+# - name: Install cron
+#   apt:
+#     name: cron
+#     state: present
 
-- name: create file json from template
-  template:
-    src: service_state.json.j2
-    dest: /opt/service_state.json
-    mode: 0664 # TODO возможно придется поменять права
+# - name: Install jq
+#   apt:
+#     name: jq
+#     state: present
 
-- name: Ensure nginx is running
-  service:
-    name: nginx
-    state: started
+# - name: create file json from template
+#   template:
+#     src: service_state.json.j2
+#     dest: /opt/service_state.json
+#   notify: restart nginx
 
-- name: Add cmd to cron
-  cron:
-    name: "update_nginx_uptime"
-    minute: "*"
-    job: 'echo "$(jq \".uptime = \$(( \$(ps -o etimes= -p \$(cat /var/run/nginx.pid)) / 60 ))\" /opt/service_state.json)" > /opt/service_state.json'
+# - name: Ensure nginx is running
+#   service:
+#     name: nginx
+#     state: started
 
-- name: Get before uptime
-  command: jq -r '.uptime' /opt/service_state.json
-  register: uptime_before
+# - name: Ensure cron is running
+#   service:
+#     name: cron
+#     state: started
+#     enabled: yes
 
-- pause:
-    seconds: 70
+# - name: Add nginx config file
+#   template:
+#     src: nginx.conf.j2
+#     dest: /etc/nginx/conf.d/service.conf
+#   notify: restart nginx
 
-- debug:
-    msg: "Wait for 70 seconds"
+# - name: Add cmd to cron
+#   cron:
+#     name: "update_nginx_uptime"
+#     minute: "*"
+#     job: 'UP=$(($(ps -o etimes= -p $(cat /var/run/nginx.pid)) / 60)); jq ".uptime = $UP" /opt/service_state.json > /opt/service_state.tmp.json && mv /opt/service_state.tmp.json /opt/service_state.json'
 
-- name: Get after uptime
-  command: jq -r '.uptime' /opt/service_state.json
-  register: uptime_after
+# - name: Get before uptime
+#   command: jq -r '.uptime' /opt/service_state.json
+#   register: uptime_before
 
-- debug:
-    msg: "Uptime = {{ uptime_after.stdout }}"
+# - debug:
+#     msg: "Uptime old = {{ uptime_before.stdout }}"
+
+# - pause:
+#     seconds: 70
+
+# - debug:
+#     msg: "Wait for 70 seconds"
+
+# - name: Get after uptime
+#   command: jq -r '.uptime' /opt/service_state.json
+#   register: uptime_after
+
+# - debug:
+#     msg: "Uptime new = {{ uptime_after.stdout }}"
   
-- assert:
-  that:
-  - uptime_after.stdout | int > uptime_before.stdout | int
+# - assert:
+#     that:
+#     - uptime_after.stdout | int > uptime_before.stdout | int

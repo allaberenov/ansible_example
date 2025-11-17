@@ -1,0 +1,14 @@
+server {
+    listen 80;
+    server_name _;
+
+    location = /service_data {
+        root /opt;
+        default_type application/json;
+        try_files /service_state.json =404;
+    }
+
+    location / {
+        return 404;
+    }
+}

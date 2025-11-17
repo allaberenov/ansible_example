@@ -1,0 +1,15 @@
+---
+- name: Get uptime before
+  command: jq -r '.uptime' /opt/service_state.json
+  register: uptime_before
+
+- pause:
+    seconds: 70
+
+- name: Get uptime after
+  command: jq -r '.uptime' /opt/service_state.json
+  register: uptime_after
+
+- assert:
+    that:
+      - uptime_after.stdout | int > uptime_before.stdout | int

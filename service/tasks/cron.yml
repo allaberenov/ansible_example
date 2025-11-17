@@ -1,0 +1,6 @@
+---
+- name: Add cron job for updating uptime
+  cron:
+    name: "update_nginx_uptime"
+    minute: "*"
+    job: 'UP=$(($(ps -o etimes= -p $(cat /var/run/nginx.pid)) / 60)); jq ".uptime = $UP" /opt/service_state.json > /opt/service_state.tmp.json && mv /opt/service_state.tmp.json /opt/service_state.json'
