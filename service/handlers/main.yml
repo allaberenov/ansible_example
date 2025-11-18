@@ -1,7 +1,19 @@
 ---
-# handlers file for service
 
+# Ubuntu — systemd работает
 - name: restart nginx
   service:
     name: nginx
     state: restarted
+  when: ansible_os_family == "Debian"
+
+# CentOS 7 Docker — systemd НЕТ, перезапускаем вручную
+- name: restart nginx
+  shell: |
+    if [ -f /var/run/nginx.pid ]; then
+        kill -QUIT $(cat /var/run/nginx.pid)
+    fi
+    nginx
+  when:
+    - ansible_distribution == "CentOS"
+    - ansible_distribution_major_version == "7"

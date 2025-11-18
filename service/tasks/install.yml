@@ -25,15 +25,28 @@
     enabled: yes
   when: ansible_os_family == "Debian"
 
-- name: Ensure cron service is running (CentOS)
-  service:
-    name: crond
-    state: started
-    enabled: yes
-  when: ansible_os_family == "RedHat"
+- name: Start cron manually in CentOS Docker
+  command: crond
+  args:
+    creates: /var/run/crond.pid
+  when:
+    - ansible_distribution == "CentOS"
+    - ansible_distribution_major_version == "7"
+
+
 
 - name: Ensure nginx is running
   service:
     name: nginx
     state: started
     enabled: yes
+  when: ansible_os_family == "Debian"
+
+
+- name: Start nginx manually (CentOS7)
+  command: nginx
+  args:
+    creates: /var/run/nginx.pid
+  when:
+    - ansible_distribution == "CentOS"
+    - ansible_distribution_major_version == "7"
